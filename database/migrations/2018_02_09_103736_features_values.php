@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class ComplectsTable extends Migration
+class FeaturesValues extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,12 @@ class ComplectsTable extends Migration
      */
     public function up()
     {
-        Schema::create('complects', function (Blueprint $table) {
+        Schema::create('feature_values', function (Blueprint $table) {
             $table->increments('id');
+            $table->integer('feature');
             $table->string('value');
+            $table->string('value_ua')->nullable();
+            $table->integer('sort')->default(0);
             $table->timestamps();
         });
     }
@@ -27,6 +30,6 @@ class ComplectsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('complects');
+        Schema::dropIfExists('feature_values');
     }
 }

@@ -4,8 +4,62 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "840c1fb06a2839e5594ae4aaf511faa4",
+    "content-hash": "8cde323657d8cea876327b27fdd09c71",
     "packages": [
+        {
+            "name": "alexusmai/ruslug",
+            "version": "0.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/alexusmai/ruslug.git",
+                "reference": "bc060899f4d00dae3d38a276705393d186db0d7d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/alexusmai/ruslug/zipball/bc060899f4d00dae3d38a276705393d186db0d7d",
+                "reference": "bc060899f4d00dae3d38a276705393d186db0d7d",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "5.0.*|5.1.*|5.2.*|5.3.*|5.4.*|5.5.*",
+                "php": ">=5.4.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Alexusmai\\Ruslug\\RuslugServiceProvider"
+                    ],
+                    "aliases": {
+                        "Slug": "Alexusmai\\Ruslug\\RuslugFacade"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Alexusmai\\Ruslug\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "alexusmai",
+                    "email": "alexusmai@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Laravel 5 RuSlug, Transliteration RU -> ENG",
+            "homepage": "https://github.com/alexusami/ruslug",
+            "keywords": [
+                "laravel 5",
+                "ru",
+                "slug"
+            ],
+            "time": "2017-09-12T18:50:48+00:00"
+        },
         {
             "name": "arrilot/laravel-widgets",
             "version": "3.9.0",

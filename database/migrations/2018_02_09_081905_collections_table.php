@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class ComplectsTable extends Migration
+class CollectionsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,12 @@ class ComplectsTable extends Migration
      */
     public function up()
     {
-        Schema::create('complects', function (Blueprint $table) {
+        Schema::create('collections', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('value');
+            $table->string('title');
+            $table->string('slug');
+            $table->boolean('publish')->default(0);
+            $table->integer('sort')->default(0);
             $table->timestamps();
         });
     }
@@ -27,6 +30,6 @@ class ComplectsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('complects');
+        Schema::dropIfExists('collections');
     }
 }
