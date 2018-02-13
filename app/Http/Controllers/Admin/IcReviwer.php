@@ -9,11 +9,13 @@
 namespace App\Http\Controllers\Admin;
 
 
+use App\Models\Featurable;
 use App\Models\FeatureValue;
 use App\Models\Product;
 use App\Services\BrandService;
 use App\Services\CategoryService;
 use App\Services\CollectionService;
+use App\Services\FeatureService;
 use App\Services\ProductService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -129,6 +131,15 @@ class IcReviwer
         $a = Collection::all();
         foreach($a as $b) {
             $collection_site[mb_strtolower(trim($b->title))] = $b->id;
+        }
+
+        /**
+         * Getting all site collections from db
+         */
+        $images_site = [];
+        $a = Image::all();
+        foreach($a as $b) {
+            $images_site[$b->product_id][] = $b->name;
         }
 
         /**
@@ -786,106 +797,108 @@ class IcReviwer
 
                     }
 
-                    if(!File::exists(storage_path($image_thumbnail250))||isset($images_tochange[$image]))
-                        if(File::exists(storage_path($image)))
+                    if(!File::exists(storage_path($image_thumbnail250)) || isset($images_tochange[$image]))
+                        if(File::exists(storage_path($image))) {
 
-//                            dd($image_url = storage_path('app/public/products/' . $id .'/' . $image_info['name'] . ".jpg"));
                             $image_url = $images_path . $id . '/' . $image_info['name'] . '.jpg';
-//                    dd($image_url);
-                            if(copy(storage_path($image), storage_path($image_url))){
+
+                            if (copy(storage_path($image), storage_path($image_url))) {
 //                                dd(getimagesize($image_url));
 
                                 list($x, $y, $t, $attr) = getimagesize(storage_path($image_url));
                                 if ($t == IMAGETYPE_GIF)
-                                    $big=imagecreatefromgif(storage_path($image_url));
+                                    $big = imagecreatefromgif(storage_path($image_url));
                                 else if ($t == IMAGETYPE_JPEG)
-                                    $big=imagecreatefromjpeg(storage_path($image_url));
+                                    $big = imagecreatefromjpeg(storage_path($image_url));
                                 else if ($t == IMAGETYPE_PNG)
-                                    $big=imagecreatefrompng(storage_path($image_url));
+                                    $big = imagecreatefrompng(storage_path($image_url));
 
 
-
-                                $scale = min(250 / $x,250 / $y);
-                                if ($scale > 1) { $scale = 1;}
+                                $scale = min(250 / $x, 250 / $y);
+                                if ($scale > 1) {
+                                    $scale = 1;
+                                }
                                 $xs = $x * $scale;
                                 $ys = $y * $scale;
-                                $crop_250=imagecreatetruecolor ($xs,$ys);
-                                $white_background=imagecolorallocate($crop_250 , 255, 255, 255);
-                                imagefill($crop_250,0,0,$white_background);
-                                $res = imagecopyresampled($crop_250,$big,0,0,0,0,$xs,$ys,$x,$y);
+                                $crop_250 = imagecreatetruecolor($xs, $ys);
+                                $white_background = imagecolorallocate($crop_250, 255, 255, 255);
+                                imagefill($crop_250, 0, 0, $white_background);
+                                $res = imagecopyresampled($crop_250, $big, 0, 0, 0, 0, $xs, $ys, $x, $y);
 
-                                if(File::exists(storage_path($image_thumbnail250))) File::delete(storage_path($image_thumbnail250));
+                                if (File::exists(storage_path($image_thumbnail250))) File::delete(storage_path($image_thumbnail250));
 //imageantialias($crop_250,true);
-                                imagejpeg($crop_250,storage_path($image_thumbnail250),100);
+                                imagejpeg($crop_250, storage_path($image_thumbnail250), 100);
                                 imagedestroy($crop_250);
 
 
-
-                                $scale = min(100 / $x,100 / $y);
-                                if ($scale > 1) { $scale = 1;}
+                                $scale = min(100 / $x, 100 / $y);
+                                if ($scale > 1) {
+                                    $scale = 1;
+                                }
                                 $xs = $x * $scale;
                                 $ys = $y * $scale;
-                                $crop_100=imagecreatetruecolor ($xs,$ys);
-                                $white_background=imagecolorallocate($crop_100 , 255, 255, 255);
-                                imagefill($crop_100,0,0,$white_background);
-                                $res = imagecopyresampled($crop_100,$big,0,0,0,0,$xs,$ys,$x,$y);
+                                $crop_100 = imagecreatetruecolor($xs, $ys);
+                                $white_background = imagecolorallocate($crop_100, 255, 255, 255);
+                                imagefill($crop_100, 0, 0, $white_background);
+                                $res = imagecopyresampled($crop_100, $big, 0, 0, 0, 0, $xs, $ys, $x, $y);
 
-                                if(File::exists(storage_path($image_thumbnail100))) File::delete(storage_path($image_thumbnail100));
+                                if (File::exists(storage_path($image_thumbnail100))) File::delete(storage_path($image_thumbnail100));
 //imageantialias($crop_100,true);
-                                imagejpeg($crop_100,storage_path($image_thumbnail100),100);
+                                imagejpeg($crop_100, storage_path($image_thumbnail100), 100);
                                 imagedestroy($crop_100);
 
 
-                                $scale = min(500 / $x,500 / $y);
-                                if ($scale > 1) { $scale = 1;}
+                                $scale = min(500 / $x, 500 / $y);
+                                if ($scale > 1) {
+                                    $scale = 1;
+                                }
                                 $xs = $x * $scale;
                                 $ys = $y * $scale;
-                                $crop_500=imagecreatetruecolor ($xs,$ys);
-                                $white_background=imagecolorallocate($crop_500 , 255, 255, 255);
-                                imagefill($crop_500,0,0,$white_background);
-                                $res = imagecopyresampled($crop_500,$big,0,0,0,0,$xs,$ys,$x,$y);
+                                $crop_500 = imagecreatetruecolor($xs, $ys);
+                                $white_background = imagecolorallocate($crop_500, 255, 255, 255);
+                                imagefill($crop_500, 0, 0, $white_background);
+                                $res = imagecopyresampled($crop_500, $big, 0, 0, 0, 0, $xs, $ys, $x, $y);
 
-                                if(File::exists(storage_path($image_thumbnail500))) File::delete(storage_path($image_thumbnail500));
+                                if (File::exists(storage_path($image_thumbnail500))) File::delete(storage_path($image_thumbnail500));
 //imageantialias($crop_500,true);
-                                imagejpeg($crop_500,storage_path($image_thumbnail500),100);
+                                imagejpeg($crop_500, storage_path($image_thumbnail500), 100);
                                 imagedestroy($crop_500);
 
 
-                                $scale = min(1200 / $x,1200 / $y);
-                                if ($scale > 1) { $scale = 1;}
+                                $scale = min(1200 / $x, 1200 / $y);
+                                if ($scale > 1) {
+                                    $scale = 1;
+                                }
                                 $xs = $x * $scale;
                                 $ys = $y * $scale;
-                                $crop_1200=imagecreatetruecolor ($xs,$ys);
-                                $white_background=imagecolorallocate($crop_1200 , 255, 255, 255);
-                                imagefill($crop_1200,0,0,$white_background);
-                                $res = imagecopyresampled($crop_1200,$big,0,0,0,0,$xs,$ys,$x,$y);
+                                $crop_1200 = imagecreatetruecolor($xs, $ys);
+                                $white_background = imagecolorallocate($crop_1200, 255, 255, 255);
+                                imagefill($crop_1200, 0, 0, $white_background);
+                                $res = imagecopyresampled($crop_1200, $big, 0, 0, 0, 0, $xs, $ys, $x, $y);
 
-                                if(File::exists(storage_path($image_thumbnail1200))) File::delete(storage_path($image_thumbnail1200));
+                                if (File::exists(storage_path($image_thumbnail1200))) File::delete(storage_path($image_thumbnail1200));
 //imageantialias($crop_1200,true);
-                                imagejpeg($crop_1200,storage_path($image_thumbnail1200),100);
+                                imagejpeg($crop_1200, storage_path($image_thumbnail1200), 100);
                                 imagedestroy($crop_1200);
 
 
-
-
-
-                                if(1==1||$id==1874)
-                                {
+                                if (1 == 1 || $id == 1874) {
 
                                     $image2 = imagecreatefromjpeg(storage_path($image_thumbnail1200));
                                     $w = imagesx($image2);
                                     $h = imagesy($image2);
 
-                                    if($w>900)
-                                    {
+                                    if ($w > 900) {
 //                                        $watermark = imagecreatefrompng(ROOT.'/images/watermark/logo1.png');
                                         $watermark = imagecreatefrompng(storage_path('app/public/watermark/logo1.png'));
                                         $ww = imagesx($watermark);
                                         $wh = imagesy($watermark);
-                                        $img_paste_x = $w-30-$ww;if($img_paste_x<0) $img_paste_x=0;
-                                        $img_paste_y = $h-30-$wh;if($img_paste_y<0) $img_paste_y=0;
+                                        $img_paste_x = $w - 30 - $ww;
+                                        if ($img_paste_x < 0) $img_paste_x = 0;
+                                        $img_paste_y = $h - 30 - $wh;
+                                        if ($img_paste_y < 0) $img_paste_y = 0;
                                         imagecopy($image2, $watermark, $img_paste_x, $img_paste_y, 0, 0, $ww, $wh);
-                                        imagejpeg ($image2, storage_path($image_thumbnail1200), "100");
+                                        imagejpeg($image2, storage_path($image_thumbnail1200), "100");
 
                                         imagedestroy($image2);
                                         imagedestroy($watermark);
@@ -893,37 +906,34 @@ class IcReviwer
                                     }
 
 
-
-
-
-
-
-
-                                    $scale = min(1200 / $x,1200 / $y);
-                                    if ($scale > 1) { $scale = 1;}
+                                    $scale = min(1200 / $x, 1200 / $y);
+                                    if ($scale > 1) {
+                                        $scale = 1;
+                                    }
                                     $xs = $x * $scale;
                                     $ys = $y * $scale;
-                                    $crop_1200w=imagecreatetruecolor ($xs,$ys);
-                                    $white_background=imagecolorallocate($crop_1200w , 255, 255, 255);
-                                    imagefill($crop_1200w,0,0,$white_background);
-                                    $res = imagecopyresampled($crop_1200w,$big,0,0,0,0,$xs,$ys,$x,$y);
+                                    $crop_1200w = imagecreatetruecolor($xs, $ys);
+                                    $white_background = imagecolorallocate($crop_1200w, 255, 255, 255);
+                                    imagefill($crop_1200w, 0, 0, $white_background);
+                                    $res = imagecopyresampled($crop_1200w, $big, 0, 0, 0, 0, $xs, $ys, $x, $y);
 
-                                    if(File::exists(storage_path($image_thumbnail1200w))) File::delete(storage_path($image_thumbnail1200w));
+                                    if (File::exists(storage_path($image_thumbnail1200w))) File::delete(storage_path($image_thumbnail1200w));
 //imageantialias($crop_1200w,true);
-                                    imagejpeg($crop_1200w,storage_path($image_thumbnail1200w),100);
+                                    imagejpeg($crop_1200w, storage_path($image_thumbnail1200w), 100);
                                     imagedestroy($crop_1200w);
 
                                     $image2 = imagecreatefromjpeg(storage_path($image_thumbnail1200w));
                                     $w = imagesx($image2);
                                     $h = imagesy($image2);
 
-                                    if($w>900)
-                                    {
+                                    if ($w > 900) {
                                         $watermark = imagecreatefrompng(storage_path('app/public/watermark/logo1.png'));
                                         $ww = imagesx($watermark);
                                         $wh = imagesy($watermark);
-                                        $img_paste_x = $w-30-$ww;if($img_paste_x<0) $img_paste_x=0;
-                                        $img_paste_y = $h-30-$wh;if($img_paste_y<0) $img_paste_y=0;
+                                        $img_paste_x = $w - 30 - $ww;
+                                        if ($img_paste_x < 0) $img_paste_x = 0;
+                                        $img_paste_y = $h - 30 - $wh;
+                                        if ($img_paste_y < 0) $img_paste_y = 0;
                                         imagecopy($image2, $watermark, $img_paste_x, $img_paste_y, 0, 0, $ww, $wh);
                                     }
 
@@ -931,23 +941,20 @@ class IcReviwer
                                     $ww = imagesx($watermark);
                                     $wh = imagesy($watermark);
                                     $img_paste_x = 0;
-                                    while($img_paste_x < $w)
-                                    {
-                                        $img_paste_y = $h/2-$wh/2;
-                                        if($img_paste_y<0) $img_paste_y=0;
+                                    while ($img_paste_x < $w) {
+                                        $img_paste_y = $h / 2 - $wh / 2;
+                                        if ($img_paste_y < 0) $img_paste_y = 0;
                                         imagecopy($image2, $watermark, $img_paste_x, $img_paste_y, 0, 0, $ww, $wh);
                                         $img_paste_x += $ww;
                                     }
 
-                                    imagejpeg ($image2, storage_path($image_thumbnail1200w), "100");
+                                    imagejpeg($image2, storage_path($image_thumbnail1200w), "100");
 
                                     imagedestroy($image2);
                                     imagedestroy($watermark);
 
 
-
                                 }
-
 
 
                                 $iii++;
@@ -960,11 +967,118 @@ class IcReviwer
                                 $imageModel->save();
 
                             }
+                        }
 
                 }
 
+                $ar_im=array();
+
+                foreach($p["Картинки"]["Картинка"] as $uuu=>$src)
+                {
+
+                    $no=0;
+
+                    if(isset($p["Картинки"]["НомерКартинки"][$uuu]))
+                        $no=$p["Картинки"]["НомерКартинки"][$uuu];
+
+                    $image =  "app/public/" . $src;
 
 
+
+                    $image_info=array();
+
+                    $jj=explode(".", strtolower($image));
+                    $end=end($jj);
+                    $jj1=explode("/",strtolower($image));
+                    $image_info['name']=end($jj1);
+
+                    $k=explode(".",$image_info['name']);
+                    $image_info['name']=$k[0];
+
+                    $ar_im[]=$image_info['name'].".jpg";
+
+
+                    /**
+                     * не похоже значение сортировки на исходную таблицу тесоро
+                     */
+                    $imageModel = Image::where(['name' => $image_info['name'], 'product_id' => $id]);
+                    $imageModel = Image::where(['name' => $image_info['name'].".jpg", 'product_id' => $id])->first();
+                    $imageModel->sort = $uuu;
+                    $imageModel->save();
+                }
+
+//                $rt=meadb_select("select * from #_images WHERE image_product='".$id."'");
+
+                $rt = Image::where('product_id', $id)->get();
+
+                foreach($rt as $im)
+                {
+
+                    $ifg=0;
+                    foreach($ar_im as $im_yes)
+                    {
+                        if($im->name==$im_yes)
+                        {
+                            $ifg=1;
+                        }
+                    }
+
+                    if($ifg==0)
+                    {
+                        $todelete_image[]=$im;
+                    }
+                }
+            }
+        }
+
+        foreach($feature_cats as $feature_id=>$list)
+        {
+            /**
+             * ADD category neras
+             */
+//            if(!in_array(16,$list)) $list[]=16;
+
+            //Getting existing feature->categories
+            $feature = new FeatureService();
+            $ar = $feature->getCategories($feature_id);
+            $siteFeatureCats = [];
+            foreach ($ar as $item){
+                $siteFeatureCats[$item->id] = $item->id;
+            }
+
+            foreach($list as $catid)
+            {
+
+                if(!in_array($catid,$siteFeatureCats)) {
+                    $feature = new FeatureService();
+                    $feature->saveFeatureCategories($feature_id, $catid);
+                }
+
+            }
+        }
+
+
+        foreach($feature_products as $pid=>$list1)
+        {
+//            dd($pid, $list1);
+//            meadb_query("delete FROM #_feature_products WHERE featureproduct_product=".$pid);
+//                Featurable::truncate();
+//                $feature = new Featurable();
+//                $feature->truncate();
+                dd('41');
+
+            foreach($list1 as $fid=>$list2)
+            {
+
+
+                foreach($list2 as $zid=>$list1)
+                {
+                    $feature = new Featurable();
+                    $feature->product_id = $pid;
+                    $feature->feature_id = $fid;
+                    $feature->feature_value_id = $zid;
+                    $feature->save();
+                }
             }
         }
     }

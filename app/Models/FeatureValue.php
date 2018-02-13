@@ -12,4 +12,8 @@ class FeatureValue extends Model
         'value_ua',
         'sort',
     ];
+
+    public function featurables() {
+        return $this->hasMany('App\Models\Featurable');
+    }
 }

@@ -36,4 +36,8 @@ class Product extends Model
         'part_id',
         'zakaz',
     ];
+
+    public function featurables() {
+        return $this->hasMany('App\Models\Featurable');
+    }
 }

@@ -12,4 +12,13 @@ class Feature extends Model
         'publish',
         'code_1c',
     ];
+
+    public function categories() {
+        return $this->belongsToMany('App\Models\Category');
+    }
+
+    public function featurables() {
+        return $this->hasMany('App\Models\Featurable');
+    }
+
 }
