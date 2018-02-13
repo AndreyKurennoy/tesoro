@@ -10,11 +10,14 @@ namespace App\Http\Controllers\Admin;
 
 
 use App\Models\FeatureValue;
+use App\Models\Product;
 use App\Services\BrandService;
 use App\Services\CategoryService;
 use App\Services\CollectionService;
+use App\Services\ProductService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 //use Alexusmai\Ruslug\Slug;
 use App\Http\Controllers\Admin\Slug as Slug;
 //Models
@@ -23,6 +26,7 @@ use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Collection;
 use App\Models\Feature;
+use App\Models\Image;
 
 class IcReviwer
 {
@@ -84,6 +88,21 @@ class IcReviwer
 
     public static function review(){
         set_time_limit(0);
+
+        $ids_nom = [];
+        $ids_nom1 = 0;
+        $todelete_image = [];
+        $pic = 0;
+        $pids = [];
+        $newids = [];
+        $old_ids = [];
+        $a = Product::all();
+        foreach($a as $b)
+        {
+            $old_ids[]=$b->code_1c;
+            $newids[$b->code_1c]=$b->id;
+        }
+
         $slug = new Slug();
         /**
          * Select all categories from db in array key=>code_1c , value=>site_id
@@ -124,9 +143,14 @@ class IcReviwer
          * Getting content of offers.xml
          */
         $offersXml = Storage::disk('public')->get('offers.xml');
-        $offers = simplexml_load_string($offersXml);
-        $offers = json_encode($offers);
-        $offers = json_decode($offers,TRUE);
+        $offersPre = simplexml_load_string($offersXml);
+        $offersPre = json_encode($offersPre);
+        $offersPre = json_decode($offersPre,TRUE);
+        $offers = [];
+        foreach($offersPre["ПакетПредложений"]["Предложения"]["Предложение"] as $p)
+        {
+            $offers[$p["Ид"]]=$p;
+        }
 
         /**
          * Complects table filling after truncating
@@ -160,10 +184,10 @@ class IcReviwer
             $categoriesXml[$item["Ид"]]= $item;
 
             if(!isset($siteCats[$item["Ид"]])){
-                $new_id=0;
+
                 $category = new Category();
                 $category->parent = 0;
-                $category->publish = 0;
+                $category->publish = 1;
                 $category->title = $item["Наименование"];
                 $category->slug = $slug->translit_alias($item["Наименование"]);
                 $category->order = $item["ПорядокДляСайта"];
@@ -348,7 +372,7 @@ class IcReviwer
         }
 
         /**
-         *
+         * Filling collections table
          */
 
         $collection_cats=array();
@@ -504,6 +528,444 @@ class IcReviwer
                 }
             }
         }
-    }
 
+        /**
+         *
+         */
+
+
+        $i1=0;
+        foreach($import["Каталог"]["Товары"]["Товар"] as $p)
+        {
+            $a = [];
+            $a["code_1c"]=$p["Ид"];
+            $a["code"]=$p["Артикул"];
+            $a["title"]=$p["Наименование"];
+            $a["code_1c_nom"]=$p["ИдНоменклатуры"];
+            $a["category_id"]=16;
+
+
+            if(is_array($p["Группы"]["Ид"]))
+            {
+                $h=0;
+                foreach($p["Группы"]["Ид"] as $c)
+                {
+                    if(isset($siteCats[$c]))
+                    {
+                        $h++;
+
+                        if($siteCats[$c]!=261)
+                            $a["category_id"]=$siteCats[$c];
+
+                        if($siteCats[$c]==261)
+                            $a["category_id2"]=$siteCats[$c];
+
+                    }
+                }
+            }
+            else
+            {
+                if(isset($siteCats[$p["Группы"]["Ид"]]))
+                    $a["category_id"]=$siteCats[$p["Группы"]["Ид"]];
+            }
+
+            if(isset($p["Описание"]))
+                $a["description"]=$p["Описание"];
+            else
+                $a["description"]="";
+
+            if(isset($p["Бренд"]["Наименование"]))
+                if(isset($prz_site[mb_strtolower(trim($p["Бренд"]["Наименование"]))]))
+                    $a["brand_id"]=$prz_site[mb_strtolower(trim($p["Бренд"]["Наименование"]))];
+
+            if(isset($p["Коллекция"]["Наименование"]))
+                if(isset($collection_site[mb_strtolower(trim($p["Коллекция"]["Наименование"]))]))
+                    $a["collection_id"]=$collection_site[mb_strtolower(trim($p["Коллекция"]["Наименование"]))];
+
+            if(isset($offers[$a["code_1c"]]["Количество"]))
+            {
+                $a["quantity"]=$offers[$a["code_1c"]]["Количество"];
+                $a["quantity_nom"]=$offers[$a["code_1c"]]["Количество"];
+            }
+            $a1 = [];
+            if(isset($offers[$a["code_1c"]]["Цены"]["Цена"]["Представление"]))
+            {
+                $a["price_1c"]=preg_replace('/\D/', '', $offers[$a["code_1c"]]["Цены"]["Цена"]["Представление"]);
+                $a1["price"]=preg_replace('/\D/', '', $offers[$a["code_1c"]]["Цены"]["Цена"]["Представление"]);
+            }
+
+            if(in_array($a["code_1c"],$old_ids))
+            {
+                $id = $newids[$a["code_1c"]];
+
+                $nmn = new ProductService();
+                $priceAction = $nmn->getpPriceActionById($id);
+                if(isset($priceAction->price_action)) {
+                    if ($priceAction->price_action > 0) {
+                    } else {
+                        $a['price'] =  $a1["price"];
+                    }
+            }
+
+                $product = new ProductService();
+                $product->updateFrom1CBy1cCode($a["code_1c"] ,$a);
+
+//                echo "<br><b style='color:blue'>Обновляем</b><br>";
+
+            }
+            else
+            {
+                $a["slug"]=$slug->translit_alias($a["title"]);
+
+                $a["publish"]=1;
+                $product = new ProductService();
+                $id = $product->saveFrom1C($a);
+                $old_ids[]=$a["code_1c"];
+                $newids[$a["code_1c"]]=$id;
+
+            }
+
+            $pids[$id]=$id;
+
+            $ids_nom1++;
+            $ids_nom[$id]=$ids_nom1;
+
+            if(isset($p["СвойстваХарактеристики"]["СвойствоХарактеристики"]))
+            {
+
+                if(isset($p["СвойстваХарактеристики"]["СвойствоХарактеристики"]["Ид"]))
+                    $p["СвойстваХарактеристики"]["СвойствоХарактеристики"]=array($p["СвойстваХарактеристики"]["СвойствоХарактеристики"]);
+
+                foreach($p["СвойстваХарактеристики"]["СвойствоХарактеристики"] as $f)
+                {
+
+                    $brand=$f["Ид"];
+
+                    $feature_id=$feature_site[$brand];
+
+                    $feature_cats[$feature_id][$a["category_id"]]=$a["category_id"];
+
+                    if(isset($a["category_id2"]))
+                        if($a["category_id2"]>0)
+                            $feature_cats[$feature_id][$a["category_id2"]]=$a["category_id2"];
+
+                    if(!isset($f["Значение"]))
+                        continue;
+
+                    if(!isset($feature_values[$feature_id][trim(mb_strtolower($f["Значение"]))]))
+                        echo "ERROR - нет значение<hr>";
+
+                    $feature_products[$id][$feature_id][$feature_values[$feature_id][trim(mb_strtolower($f["Значение"]))]]=$feature_values[$feature_id][trim(mb_strtolower($f["Значение"]))];
+
+                }
+
+            }
+
+            $i1++;
+            $pic++;
+
+//            echo "xxx".$pic."xxx";
+
+            $iii=0;
+            if(isset($p["Картинки"]["Картинка"]))
+            {
+
+                if(is_string($p["Картинки"]["Картинка"]))
+                    $p["Картинки"]["Картинка"]=array($p["Картинки"]["Картинка"]);
+
+                if(is_string($p["Картинки"]["НомерКартинки"]))
+                    $p["Картинки"]["НомерКартинки"]=array($p["Картинки"]["НомерКартинки"]);
+
+                if(is_string($p["Картинки"]["КартинкаИзменена"]))
+                    $p["Картинки"]["КартинкаИзменена"]=array($p["Картинки"]["КартинкаИзменена"]);
+
+                $images_array=array();
+                $images_tochange=array();
+
+                foreach($p["Картинки"]["Картинка"] as $uuu=>$src)
+                {
+                    $check = File::isDirectory(storage_path('app/public/products/' . $id ));
+                    if(!$check) {
+                        File::makeDirectory(storage_path('app/public/products/' . $id));
+                    }
+
+                    $image =  "app/public/" . $src;
+//                    $jj1=explode("/",strtolower($image));
+//                    $image_info['name']=end($jj1)  . ".jpg";
+//                    copy($image, storage_path('app/public/products/' . $id .'/' . $image_info['name'] . ".jpg"));
+//                    dd(is_file($image),$image);
+                    $images_path = "/app/public/products/";
+//                    dd($image, $id);
+                    $no=0;
+
+                    if(isset($p["Картинки"]["НомерКартинки"][$uuu]))
+                        $no=$p["Картинки"]["НомерКартинки"][$uuu];
+
+                    $images_array[$no]=$image;
+
+
+                    $change=0;
+                    if(isset($p["Картинки"]["КартинкаИзменена"][$uuu]))
+                        if($p["Картинки"]["КартинкаИзменена"][$uuu]==="Истина")
+                        {
+                            $change=1;
+                        }
+
+                    if($change==1)
+                        $images_tochange[$image]=1;
+
+//echo "фото ".$image." - номер ".$no."<br>";
+
+
+                }
+
+                echo "<hr>";
+
+                ksort($images_array);
+
+                $images_array=array_reverse($images_array,true);
+
+                foreach($images_array as $sort=>$image)
+                {
+
+                    if(isset($images_tochange[$image])) echo "<br><b style='color:red;'>ИЗМЕНИТЬ КАРТИНКУ - ".$image."</b><br>";
+
+                    $image_info=array();
+
+                    $jj=explode(".", strtolower($image));
+                    $end=end($jj);
+                    $jj1=explode("/",strtolower($image));
+                    $image_info['name']=end($jj1);
+                    $image_url=$images_path.$id."/".$image_info['name'];
+
+                    $k=explode(".",$image_info['name']);
+                    $image_info['name']=$k[0];
+
+                    $image_url_jpg = $images_path . $id . "/" . $image_info['name'] . ".jpg";
+                    $image_thumbnail250 = $images_path . $id . "/thumb_" . $image_info['name'] . ".jpg";
+                    $image_thumbnail100 = $images_path . $id . "/thumb100_" . $image_info['name'] . ".jpg";
+                    $image_thumbnail500 = $images_path . $id . "/thumb500_" . $image_info['name'] . ".jpg";
+                    $image_thumbnail1200 = $images_path . $id . "/thumb1200_" . $image_info['name'] . ".jpg";
+                    $image_thumbnail1200w = $images_path . $id . "/thumb1200w_" . $image_info['name'] . ".jpg";
+
+                    if(isset($images_tochange[$image]))
+                    {
+                        $path = 'app/public/products/' . $id . "/" . $image_info['name'] . ".jpg";
+                        if(File::exists(storage_path($path))){
+                            File::delete(storage_path($path));
+                        }
+
+                        $path = 'app/public/products/' . $id . "/thumb_" . $image_info['name'] . ".jpg";
+                        if(File::exists(storage_path($path))){
+                            File::delete(storage_path($path));
+                        }
+
+                        $path = 'app/public/products/' .$id."/thumb100_".$image_info['name'].".jpg";
+                        if(File::exists(storage_path($path))){
+                            File::delete(storage_path($path));
+                        }
+
+                        $path= 'app/public/products/' .$id."/thumb500_".$image_info['name'].".jpg";
+                        if(File::exists(storage_path($path))){
+                            File::delete(storage_path($path));
+                        }
+
+                        $path = 'app/public/products/' .$id."/thumb1200_".$image_info['name'].".jpg";
+                        if(File::exists(storage_path($path))){
+                            File::delete(storage_path($path));
+                        }
+
+                        $path = 'app/public/products/' .$id."/thumb1200w_".$image_info['name'].".jpg";
+                        if(File::exists(storage_path($path))){
+                            File::delete(storage_path($path));
+                        }
+
+//     ??????           $q="DELETE FROM #_images WHERE image_product='".$id."' and image_src='".$image_info['name'].".jpg'";
+                        $imageModel = Image::where(['product_id' => $id, 'name' => $image_info['name'].'.jpg']);
+                        $imageModel->delete();
+
+                    }
+
+                    if(!File::exists(storage_path($image_thumbnail250))||isset($images_tochange[$image]))
+                        if(File::exists(storage_path($image)))
+
+//                            dd($image_url = storage_path('app/public/products/' . $id .'/' . $image_info['name'] . ".jpg"));
+                            $image_url = $images_path . $id . '/' . $image_info['name'] . '.jpg';
+//                    dd($image_url);
+                            if(copy(storage_path($image), storage_path($image_url))){
+//                                dd(getimagesize($image_url));
+
+                                list($x, $y, $t, $attr) = getimagesize(storage_path($image_url));
+                                if ($t == IMAGETYPE_GIF)
+                                    $big=imagecreatefromgif(storage_path($image_url));
+                                else if ($t == IMAGETYPE_JPEG)
+                                    $big=imagecreatefromjpeg(storage_path($image_url));
+                                else if ($t == IMAGETYPE_PNG)
+                                    $big=imagecreatefrompng(storage_path($image_url));
+
+
+
+                                $scale = min(250 / $x,250 / $y);
+                                if ($scale > 1) { $scale = 1;}
+                                $xs = $x * $scale;
+                                $ys = $y * $scale;
+                                $crop_250=imagecreatetruecolor ($xs,$ys);
+                                $white_background=imagecolorallocate($crop_250 , 255, 255, 255);
+                                imagefill($crop_250,0,0,$white_background);
+                                $res = imagecopyresampled($crop_250,$big,0,0,0,0,$xs,$ys,$x,$y);
+
+                                if(File::exists(storage_path($image_thumbnail250))) File::delete(storage_path($image_thumbnail250));
+//imageantialias($crop_250,true);
+                                imagejpeg($crop_250,storage_path($image_thumbnail250),100);
+                                imagedestroy($crop_250);
+
+
+
+                                $scale = min(100 / $x,100 / $y);
+                                if ($scale > 1) { $scale = 1;}
+                                $xs = $x * $scale;
+                                $ys = $y * $scale;
+                                $crop_100=imagecreatetruecolor ($xs,$ys);
+                                $white_background=imagecolorallocate($crop_100 , 255, 255, 255);
+                                imagefill($crop_100,0,0,$white_background);
+                                $res = imagecopyresampled($crop_100,$big,0,0,0,0,$xs,$ys,$x,$y);
+
+                                if(File::exists(storage_path($image_thumbnail100))) File::delete(storage_path($image_thumbnail100));
+//imageantialias($crop_100,true);
+                                imagejpeg($crop_100,storage_path($image_thumbnail100),100);
+                                imagedestroy($crop_100);
+
+
+                                $scale = min(500 / $x,500 / $y);
+                                if ($scale > 1) { $scale = 1;}
+                                $xs = $x * $scale;
+                                $ys = $y * $scale;
+                                $crop_500=imagecreatetruecolor ($xs,$ys);
+                                $white_background=imagecolorallocate($crop_500 , 255, 255, 255);
+                                imagefill($crop_500,0,0,$white_background);
+                                $res = imagecopyresampled($crop_500,$big,0,0,0,0,$xs,$ys,$x,$y);
+
+                                if(File::exists(storage_path($image_thumbnail500))) File::delete(storage_path($image_thumbnail500));
+//imageantialias($crop_500,true);
+                                imagejpeg($crop_500,storage_path($image_thumbnail500),100);
+                                imagedestroy($crop_500);
+
+
+                                $scale = min(1200 / $x,1200 / $y);
+                                if ($scale > 1) { $scale = 1;}
+                                $xs = $x * $scale;
+                                $ys = $y * $scale;
+                                $crop_1200=imagecreatetruecolor ($xs,$ys);
+                                $white_background=imagecolorallocate($crop_1200 , 255, 255, 255);
+                                imagefill($crop_1200,0,0,$white_background);
+                                $res = imagecopyresampled($crop_1200,$big,0,0,0,0,$xs,$ys,$x,$y);
+
+                                if(File::exists(storage_path($image_thumbnail1200))) File::delete(storage_path($image_thumbnail1200));
+//imageantialias($crop_1200,true);
+                                imagejpeg($crop_1200,storage_path($image_thumbnail1200),100);
+                                imagedestroy($crop_1200);
+
+
+
+
+
+                                if(1==1||$id==1874)
+                                {
+
+                                    $image2 = imagecreatefromjpeg(storage_path($image_thumbnail1200));
+                                    $w = imagesx($image2);
+                                    $h = imagesy($image2);
+
+                                    if($w>900)
+                                    {
+//                                        $watermark = imagecreatefrompng(ROOT.'/images/watermark/logo1.png');
+                                        $watermark = imagecreatefrompng(storage_path('app/public/watermark/logo1.png'));
+                                        $ww = imagesx($watermark);
+                                        $wh = imagesy($watermark);
+                                        $img_paste_x = $w-30-$ww;if($img_paste_x<0) $img_paste_x=0;
+                                        $img_paste_y = $h-30-$wh;if($img_paste_y<0) $img_paste_y=0;
+                                        imagecopy($image2, $watermark, $img_paste_x, $img_paste_y, 0, 0, $ww, $wh);
+                                        imagejpeg ($image2, storage_path($image_thumbnail1200), "100");
+
+                                        imagedestroy($image2);
+                                        imagedestroy($watermark);
+
+                                    }
+
+
+
+
+
+
+
+
+                                    $scale = min(1200 / $x,1200 / $y);
+                                    if ($scale > 1) { $scale = 1;}
+                                    $xs = $x * $scale;
+                                    $ys = $y * $scale;
+                                    $crop_1200w=imagecreatetruecolor ($xs,$ys);
+                                    $white_background=imagecolorallocate($crop_1200w , 255, 255, 255);
+                                    imagefill($crop_1200w,0,0,$white_background);
+                                    $res = imagecopyresampled($crop_1200w,$big,0,0,0,0,$xs,$ys,$x,$y);
+
+                                    if(File::exists(storage_path($image_thumbnail1200w))) File::delete(storage_path($image_thumbnail1200w));
+//imageantialias($crop_1200w,true);
+                                    imagejpeg($crop_1200w,storage_path($image_thumbnail1200w),100);
+                                    imagedestroy($crop_1200w);
+
+                                    $image2 = imagecreatefromjpeg(storage_path($image_thumbnail1200w));
+                                    $w = imagesx($image2);
+                                    $h = imagesy($image2);
+
+                                    if($w>900)
+                                    {
+                                        $watermark = imagecreatefrompng(storage_path('app/public/watermark/logo1.png'));
+                                        $ww = imagesx($watermark);
+                                        $wh = imagesy($watermark);
+                                        $img_paste_x = $w-30-$ww;if($img_paste_x<0) $img_paste_x=0;
+                                        $img_paste_y = $h-30-$wh;if($img_paste_y<0) $img_paste_y=0;
+                                        imagecopy($image2, $watermark, $img_paste_x, $img_paste_y, 0, 0, $ww, $wh);
+                                    }
+
+                                    $watermark = imagecreatefrompng(storage_path('app/public/watermark/polosa.png'));
+                                    $ww = imagesx($watermark);
+                                    $wh = imagesy($watermark);
+                                    $img_paste_x = 0;
+                                    while($img_paste_x < $w)
+                                    {
+                                        $img_paste_y = $h/2-$wh/2;
+                                        if($img_paste_y<0) $img_paste_y=0;
+                                        imagecopy($image2, $watermark, $img_paste_x, $img_paste_y, 0, 0, $ww, $wh);
+                                        $img_paste_x += $ww;
+                                    }
+
+                                    imagejpeg ($image2, storage_path($image_thumbnail1200w), "100");
+
+                                    imagedestroy($image2);
+                                    imagedestroy($watermark);
+
+
+
+                                }
+
+
+
+                                $iii++;
+
+
+                                $imageModel = new Image();
+                                $imageModel->product_id = $id;
+                                $imageModel->sort = $iii;
+                                $imageModel->name = $image_info['name'] . ".jpg";
+                                $imageModel->save();
+
+                            }
+
+                }
+
+
+
+            }
+        }
+    }
 }
