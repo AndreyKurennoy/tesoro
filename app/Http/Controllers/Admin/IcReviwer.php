@@ -91,6 +91,8 @@ class IcReviwer
     public static function review(){
         set_time_limit(0);
 
+        $featurableSite = Featurable::all();
+
         $ids_nom = [];
         $ids_nom1 = 0;
         $todelete_image = [];
@@ -1065,21 +1067,196 @@ class IcReviwer
 //                Featurable::truncate();
 //                $feature = new Featurable();
 //                $feature->truncate();
-                dd('41');
+//                dd('41');
 
             foreach($list1 as $fid=>$list2)
             {
-
-
                 foreach($list2 as $zid=>$list1)
                 {
-                    $feature = new Featurable();
-                    $feature->product_id = $pid;
-                    $feature->feature_id = $fid;
-                    $feature->feature_value_id = $zid;
-                    $feature->save();
+                    $search = $featurableSite->where('product_id', $pid)->where('feature_id', $fid)->where('feature_value_id', $zid)->all();
+                    if(empty($search)) {
+                        $feature = new Featurable();
+                        $feature->product_id = $pid;
+                        $feature->feature_id = $fid;
+                        $feature->feature_value_id = $zid;
+                        $feature->save();
+                    }
                 }
             }
         }
+
+        $a = Product::where('part_id', 0)->get();
+        foreach($a as $p)
+        {
+
+            $pid = $p->id;
+
+            if(!isset($pids[$pid]))
+            {
+
+                $p->quantity = 0;
+                $p->quantity_nom = 0;
+                $p->save();
+            }
+        }
+
+        $list = FeatureValue::all();
+        foreach($list as $a)
+        {
+            $b = Featurable::where('feature_value_id', $a->id)->get();
+            if(empty($b))
+            {
+                $q = FeatureValue::find($a->id);
+                $q->delete();
+            }
+            else
+            {
+                $if=0;
+                foreach($b as $c)
+                {
+                    $d = Product::where('id' , $c->product_id)->first();
+
+                    if(!empty($d))
+                    {
+                        $if=1;
+                        break;
+                    }
+                }
+                if($if==0)
+                {
+                    $q = FeatureValue::where('id', $a->id)->get();
+                    $q->delete();
+                }
+            }
+        }
+
+        foreach($todelete_image as $im)
+        {
+
+            $d = Product::where('id', $im->product_id)->get();
+
+            if(!empty($d))
+            {
+
+                echo "<hr>";
+                print_r($im);
+                $id = $im->product_id;
+
+                $path = 'app/public/products/' . $id . "/" . $im->name . ".jpg";
+                if(File::exists(storage_path($path))){
+                    File::delete(storage_path($path));
+                }
+
+                $path = 'app/public/products/' . $id . "/thumb_" . $im->name . ".jpg";
+                if(File::exists(storage_path($path))){
+                    File::delete(storage_path($path));
+                }
+
+                $path = 'app/public/products/' .$id."/thumb100_".$im->name.".jpg";
+                if(File::exists(storage_path($path))){
+                    File::delete(storage_path($path));
+                }
+
+                $path= 'app/public/products/' .$id."/thumb500_".$im->name.".jpg";
+                if(File::exists(storage_path($path))){
+                    File::delete(storage_path($path));
+                }
+
+                $path = 'app/public/products/' .$id."/thumb1200_".$im->name.".jpg";
+                if(File::exists(storage_path($path))){
+                    File::delete(storage_path($path));
+                }
+
+                $path = 'app/public/products/' .$id."/thumb1200w_".$im->name.".jpg";
+                if(File::exists(storage_path($path))){
+                    File::delete(storage_path($path));
+                }
+
+                $q = Image::where(['product_id' => $id, 'name' => $im->name]);
+                $q->delete();
+
+
+            }
+        }
+
+//        $list=meadb_select("select product_id,product_code,product_quantity_nom,product_quantity_excel FROM #_products ORDER BY product_id ASC");
+        $list = Product::all()->sortBy('id', 'asc');
+        $codes=array();
+        $q_all=array();
+        $e_all=array();
+
+        foreach($list as $c)
+        {
+
+            if(!isset($codes[$c->code])) $codes[$c->code]=array();
+
+            $codes[$c->code][]=$c->id;
+
+            if(!isset($q_all[$c->code])) $q_all[$c->code]=0;
+
+            $q_all[$c->code]+=$c->quantity_nom;
+
+            if($c->quantity_excel > 0)
+            {
+                $e_all[$c->code]=1;
+            }
+
+        }
+
+//        foreach($codes as $s=>$p)
+//        {
+//            if(sizeof($p)<=1) continue;
+//            echo $s."<br><br>";
+//
+//            $ids1=implode(",",$p);
+//
+//            $q="update #_products SET product_quantity_all1c=".$q_all[$s]." WHERE product_id IN (".$ids1.")";
+//            echo $q."<br><br>";
+//            meadb_query($q);
+//
+//            $q = Product::find()
+//
+//            $s=$q_all[$s];
+//
+//            if(isset($e_all[$s])) $s+=$e_all[$s];
+//
+//            $q="update #_products SET product_quantity=".$s." WHERE product_id IN (".$ids1.")";
+//            echo $q."<br><br>";
+//            meadb_query($q);
+//
+//
+//
+//
+//            $min=0;
+//            $min_value=-1;
+//
+//            foreach($p as $m=>$g)
+//                if(isset($ids_nom[$g]))
+//                    if($ids_nom[$g]>$min_value)
+//                    {
+//                        $min=$m;
+//                        $min_value=$ids_nom[$g];
+//                    }
+//
+//            echo $min." - ";
+//
+//            $id=$p[$min];
+//            echo "id: ".$id."<br><br>";
+//            unset($p[$min]);
+//            $ids=implode(",",$p);
+//            echo $ids."<br><br>";
+//
+//            $q="update #_products SET product_published=0 WHERE product_id IN (".$ids.")";
+//            echo $q."<br><br>";
+//            meadb_query($q);
+//
+//            $q="update #_products SET product_published=1 WHERE product_id IN (".$id.")";
+//            echo $q."<br><br>";
+//            meadb_query($q);
+//
+//
+//
+//            echo "<hr>";
+//        }
     }
 }
