@@ -555,8 +555,8 @@ class IcReviwer
             $a["code"]=$p["Артикул"];
             $a["title"]=$p["Наименование"];
             $a["code_1c_nom"]=$p["ИдНоменклатуры"];
-            $a["category_id"]=16;
-
+            $a["category_id"]=286;
+//neras
 
             if(is_array($p["Группы"]["Ид"]))
             {
@@ -567,10 +567,10 @@ class IcReviwer
                     {
                         $h++;
 
-                        if($siteCats[$c]!=261)
+                        if($siteCats[$c]!=285)
                             $a["category_id"]=$siteCats[$c];
 
-                        if($siteCats[$c]==261)
+                        if($siteCats[$c]==285)
                             $a["category_id2"]=$siteCats[$c];
 
                     }
@@ -732,7 +732,7 @@ class IcReviwer
 
                 }
 
-                echo "<hr>";
+//                echo "<hr>";
 
                 ksort($images_array);
 
@@ -741,7 +741,7 @@ class IcReviwer
                 foreach($images_array as $sort=>$image)
                 {
 
-                    if(isset($images_tochange[$image])) echo "<br><b style='color:red;'>ИЗМЕНИТЬ КАРТИНКУ - ".$image."</b><br>";
+//                    if(isset($images_tochange[$image])) echo "<br><b style='color:red;'>ИЗМЕНИТЬ КАРТИНКУ - ".$image."</b><br>";
 
                     $image_info=array();
 
@@ -1062,19 +1062,21 @@ class IcReviwer
 
         foreach($feature_products as $pid=>$list1)
         {
-//            dd($pid, $list1);
+
 //            meadb_query("delete FROM #_feature_products WHERE featureproduct_product=".$pid);
 //                Featurable::truncate();
 //                $feature = new Featurable();
 //                $feature->truncate();
-//                dd('41');
+
 
             foreach($list1 as $fid=>$list2)
             {
                 foreach($list2 as $zid=>$list1)
                 {
-                    $search = $featurableSite->where('product_id', $pid)->where('feature_id', $fid)->where('feature_value_id', $zid)->all();
-                    if(empty($search)) {
+//                    $search = $featurableSite->where('product_id', $pid)->where('feature_id', $fid)->where('feature_value_id', $zid)->all();
+                    $search = Featurable::where(['product_id' => $pid, 'feature_id' => $fid, 'feature_value_id' => $zid])->get();
+
+                    if(!isset($search[0])) {
                         $feature = new Featurable();
                         $feature->product_id = $pid;
                         $feature->feature_id = $fid;
@@ -1124,7 +1126,7 @@ class IcReviwer
                 }
                 if($if==0)
                 {
-                    $q = FeatureValue::where('id', $a->id)->get();
+                    $q = FeatureValue::where('id', $a->id)->first();
                     $q->delete();
                 }
             }
@@ -1180,7 +1182,7 @@ class IcReviwer
         }
 
 //        $list=meadb_select("select product_id,product_code,product_quantity_nom,product_quantity_excel FROM #_products ORDER BY product_id ASC");
-        $list = Product::all()->sortBy('id', 'asc');
+        $list = Product::all()->sortBy('id');
         $codes=array();
         $q_all=array();
         $e_all=array();
@@ -1203,60 +1205,228 @@ class IcReviwer
 
         }
 
-//        foreach($codes as $s=>$p)
-//        {
-//            if(sizeof($p)<=1) continue;
-//            echo $s."<br><br>";
-//
-//            $ids1=implode(",",$p);
-//
-//            $q="update #_products SET product_quantity_all1c=".$q_all[$s]." WHERE product_id IN (".$ids1.")";
-//            echo $q."<br><br>";
-//            meadb_query($q);
-//
-//            $q = Product::find()
-//
-//            $s=$q_all[$s];
-//
-//            if(isset($e_all[$s])) $s+=$e_all[$s];
-//
-//            $q="update #_products SET product_quantity=".$s." WHERE product_id IN (".$ids1.")";
-//            echo $q."<br><br>";
-//            meadb_query($q);
-//
-//
-//
-//
-//            $min=0;
-//            $min_value=-1;
-//
-//            foreach($p as $m=>$g)
-//                if(isset($ids_nom[$g]))
-//                    if($ids_nom[$g]>$min_value)
-//                    {
-//                        $min=$m;
-//                        $min_value=$ids_nom[$g];
-//                    }
-//
-//            echo $min." - ";
-//
-//            $id=$p[$min];
-//            echo "id: ".$id."<br><br>";
-//            unset($p[$min]);
-//            $ids=implode(",",$p);
-//            echo $ids."<br><br>";
-//
-//            $q="update #_products SET product_published=0 WHERE product_id IN (".$ids.")";
-//            echo $q."<br><br>";
-//            meadb_query($q);
-//
-//            $q="update #_products SET product_published=1 WHERE product_id IN (".$id.")";
-//            echo $q."<br><br>";
-//            meadb_query($q);
-//
-//
-//
-//            echo "<hr>";
-//        }
+        foreach($codes as $s=>$p)
+        {
+
+            if(sizeof($p)<=1) continue;
+
+            $ids1=implode(", ",$p);
+            $q = Product::whereIn('id', $p)->get();
+
+            $s_old = $q_all[$s];
+            $s=$q_all[$s];
+            if(isset($e_all[$s])) $s+=$e_all[$s];
+
+            $min=0;
+            $min_value=-1;
+
+            foreach($p as $m=>$g)
+                if(isset($ids_nom[$g]))
+                    if($ids_nom[$g]>$min_value)
+                    {
+                        $min=$m;
+                        $min_value=$ids_nom[$g];
+                    }
+
+            $id=$p[$min];
+            unset($p[$min]);
+            $ids=implode(",",$p);
+
+            foreach ($q as $item){
+
+//                $item = new Product();
+                $item->quantity_all_1c = $s_old;
+                $item->quantity = $s;
+                if($item->id == $id){
+                    $item->publish = 1;
+                }else{
+                    $item->publish = 0;
+                }
+                $item->save();
+            }
+
+        }
+
+
+        /**
+         * ListsOfProperties.xml
+         */
+        $xmlstring = Storage::disk('public')->get('ListsOfProperties.xml');
+        $xml = simplexml_load_string($xmlstring);
+        $json = json_encode($xml);
+        $array = json_decode($json,TRUE);
+
+        $feature_site=array();
+        $a = Feature::all();
+        foreach($a as $b){
+            $feature_site[$b->code_1c]=$b->id;
+        }
+
+        $i=0;
+        $feature_cats=array();
+        $feature_products=array();
+        $feature_values=array();
+
+
+        $a = FeatureValue::all();
+//        dd($a);
+        foreach($a as $b) {
+            $feature_values[$b->feature][mb_strtolower(trim($b->value))] = $b->id;
+        }
+
+        foreach($array["Каталог"]["ПереченьСвойств"]["Товар"] as $p)
+        {
+
+            if(!isset($p["СвойстваНоменклатуры"])) continue;
+            if(!sizeof($p["СвойстваНоменклатуры"])) continue;
+
+            if(isset($p["СвойстваНоменклатуры"]["СвойствоНоменклатур"]["ИдСвойства"]))
+                $p["СвойстваНоменклатуры"]["СвойствоНоменклатур"]=array($p["СвойстваНоменклатуры"]["СвойствоНоменклатур"]);
+
+            foreach($p["СвойстваНоменклатуры"]["СвойствоНоменклатур"] as $f)
+            {
+
+                $brand=$f["ИдСвойства"];
+
+                if(!isset($feature_site[$brand]))
+                {
+
+                    $feature=array();
+                    $feature["feature_code"]=$brand;
+                    $feature["feature_title"]=$f["СвойствоНаименование"];
+                    $feature["feature_published"]=1;
+
+                    $feature = new Feature();
+                    $feature->code_1c = $brand;
+                    $feature->title = $f["СвойствоНаименование"];
+                    $feature->publish = 1;
+                    $feature->save();
+                    $new_id=1100000;//FOr what?
+                    $new_id = $feature->id;
+                    $feature_site[$brand]=$new_id;
+
+                }
+                else
+                {
+
+                    $feature = new Feature();
+                    $feature->title = $f["СвойствоНаименование"];
+                }
+
+                $id=$feature_site[$brand];
+
+                if(!isset($f["ЗначениеСвойства"]))
+                    continue;
+
+                $brand=$f["ЗначениеСвойства"];
+
+                if(!isset($feature_values[$id][mb_strtolower(trim($brand))]))
+                {
+
+                    $feature_value = new FeatureValue();
+                    $feature_value->feature = $id;
+                    $feature_value->value = $brand;
+                    $feature_value->save();
+                    $new_id=1000000;
+                    $new_id = $feature_value->id;
+                    $feature_values[$id][mb_strtolower(trim($brand))]=$new_id;
+                }
+
+            }
+
+        }
+
+        $i1=0;
+
+        foreach($array["Каталог"]["ПереченьСвойств"]["Товар"] as $p)
+        {
+
+            if(!isset($p["СвойстваНоменклатуры"])) continue;
+            if(!sizeof($p["СвойстваНоменклатуры"])) continue;
+
+            if(isset($p["СвойстваНоменклатуры"]["СвойствоНоменклатур"]))
+            {
+
+                if(isset($p["СвойстваНоменклатуры"]["СвойствоНоменклатур"]["ИдСвойства"]))
+                    $p["СвойстваНоменклатуры"]["СвойствоНоменклатур"]=array($p["СвойстваНоменклатуры"]["СвойствоНоменклатур"]);
+
+                foreach($p["СвойстваНоменклатуры"]["СвойствоНоменклатур"] as $f)
+                {
+
+                    if(!isset($f["ИдНоменклатурыХарактеристикиНоменклатуры"])) continue;
+                    if(!isset($newids[$f["ИдНоменклатурыХарактеристикиНоменклатуры"]])) continue;
+
+                    $id=$newids[$f["ИдНоменклатурыХарактеристикиНоменклатуры"]];
+
+//                    $prod=meadb_select("select product_catid from #_products WHERE product_id='".$id."'");
+                    $prod = Product::findOrfail($id);
+
+                    $pids[$id]=$id;
+
+
+                    $brand=$f["ИдСвойства"];
+
+                    $feature_id=$feature_site[$brand];
+
+                    $feature_cats[$feature_id][$prod->category_id]=$prod->category_id;
+
+                    if(isset($prod->category_id2))
+                        if($prod->category_id2>0)
+                            $feature_cats[$feature_id][$prod->category_id2]=$prod->category_id2;
+
+                    if(!isset($f["ЗначениеСвойства"]))
+                        continue;
+
+                    if(!isset($feature_values[$feature_id][trim(mb_strtolower($f["ЗначениеСвойства"]))]))
+//                        echo "ERROR - нет ЗначениеСвойства<hr>";
+
+                    $feature_products[$id][$feature_id][$feature_values[$feature_id][trim(mb_strtolower($f["ЗначениеСвойства"]))]]=$feature_values[$feature_id][trim(mb_strtolower($f["ЗначениеСвойства"]))];
+
+                }
+
+            }
+
+        }
+
+        foreach($feature_cats as $feature_id=>$list)
+        {
+
+            if(!in_array(286,$list)) $list[]=286;
+            $feature = new FeatureService();
+            $ar = $feature->getCategories($feature_id);
+            $siteFeatureCats = [];
+            foreach ($ar as $item){
+                $siteFeatureCats[$item->id] = $item->id;
+            }
+            foreach($list as $catid)
+            {
+
+                if(!in_array($catid,$siteFeatureCats)) {
+                    $feature = new FeatureService();
+                    $feature->saveFeatureCategories($feature_id, $catid);
+                }
+
+            }
+
+        }
+
+        foreach($feature_products as $pid=>$list1)
+        {
+            foreach($list1 as $fid=>$list2)
+            {
+                foreach($list2 as $zid=>$list1)
+                {
+                    $search = Featurable::where(['product_id' => $pid, 'feature_id' => $fid, 'feature_value_id' => $zid])->get();
+                    if(!isset($search[0])) {
+
+                        $feature = new Featurable();
+                        $feature->product_id = $pid;
+                        $feature->feature_id = $fid;
+                        $feature->feature_value_id = $zid;
+                        $feature->save();
+                    }
+                }
+            }
+        }
     }
 }

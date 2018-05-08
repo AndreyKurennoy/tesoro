@@ -19,7 +19,9 @@ class FeatureService
 
     public function saveFeatureCategories($feature_id, $category_id){
         $feature = Feature::findOrFail($feature_id);
+
         $feature->categories()->attach($category_id);
+//        dd($feature, $category_id);
     }
 
 }
