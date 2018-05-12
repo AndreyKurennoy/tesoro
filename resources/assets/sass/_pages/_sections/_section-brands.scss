@@ -1,0 +1,25 @@
+.brands{
+	padding:20px 0;
+	
+	.owl-dots {
+        text-align: center;
+    }
+    .owl-dot {
+        display: inline-block;
+        text-align: center;
+        margin: 0 9px;
+        span {
+            height: 8px;
+            width: 8px;
+            background-color: #9E9E9E;
+            display: block;
+            border-radius: 50%;
+        }
+    }
+    .owl-dot.active {
+        span {
+            background-color: #212121;
+        }
+    }
+	
+}

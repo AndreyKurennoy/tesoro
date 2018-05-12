@@ -1,0 +1,160 @@
+.promo {
+    display: flex;
+    flex-wrap: wrap;
+    &__item {
+        padding-bottom: 20%;
+        position: relative;
+        display: block;
+        &--large {
+            flex-basis: 40%;
+        }
+        &--small {
+            flex-basis: 20%;
+        }
+    }
+    &__item:nth-child(1) {
+        background: #F2EEE6;
+    }
+    &__item:nth-child(2) {
+        background: linear-gradient(#D8E4E8, #E9F2F5);
+    }
+    &__item:nth-child(3) {
+        background: #FCF2FC;
+    }
+    &__item:nth-child(4) {
+        background: #FAF7FC;
+    }
+    &__item:nth-child(5) {
+        background: linear-gradient(#D4D4D4, #F2EEE6);
+    }
+    &__item:nth-child(6) {
+        background: #E5E0D1;
+    }
+    &__item:nth-child(7) {
+        background: linear-gradient(#F0F0F0, #E3E3E3);
+    }
+    &__item:nth-child(8) {
+        background: linear-gradient(#CFC6B0, #E8DEC5);
+    }
+    &__item:nth-child(9) {
+        background: #CFCFCF;
+    }
+    &__name {
+        position: absolute;
+        font-family: $alt-font;
+        font-size: 24px;
+        top: 17px;
+        left: 17px;
+        color: #212121;
+        margin: 0;
+        font-weight: 300;
+    }
+    &__image {
+        position: absolute;
+        height: 100%;
+        top: 0;
+        right: 0;
+        img {
+            display: block;
+            height: 100%;
+        }
+    }
+    .owl-dots {
+        text-align: center;
+        margin: 0 auto;
+    }
+    .owl-dot {
+        display: inline-block;
+        text-align: center;
+        margin: 0 9px;
+        span {
+            height: 8px;
+            width: 8px;
+            background-color: #9E9E9E;
+            display: block;
+            border-radius: 50%;
+        }
+    }
+    .owl-dot.active {
+        span {
+            background-color: #212121;
+        }
+    }
+}
+
+.promo.off {
+    display: flex;
+}
+
+@media only screen and (max-width: 1600px) {}
+
+@media only screen and (max-width: 1280px) {
+    .promo__name {
+        font-size: 18px;
+    }
+}
+
+
+
+
+/* Medium Devices, Desktops */
+
+@media only screen and (max-width: 992px) {
+    .promo__name {
+        font-size: 16px;
+    }
+}
+
+
+
+
+/* Small Devices, Tablets */
+
+@media only screen and (max-width: 767px) {
+    .promo__name {
+        font-size: 14px;
+        top: 7px;
+        left: 7px;
+        line-height: 18px;
+    }
+    .promo__item--small,
+    .promo__item--large {
+        flex-basis: 50%;
+    }
+    .promo__item:nth-child(3),
+    .promo__item:nth-child(4) {
+        flex-basis: 25%
+    }
+}
+
+
+
+
+/* Extra Small Devices, Phones */
+
+@media only screen and (max-width: 480px) {
+
+    .promo {
+        padding: 0 15px;
+    }
+    .promo.owl-carousel .owl-item img {
+        width: auto;
+    }
+    .promo__item {
+        padding-bottom: 54%;
+    }
+    .promo__name {
+        font-size: 18px;
+        top: 17px;
+        left: 17px
+    }
+}
+
+
+
+
+/* Custom, iPhone Retina */
+
+@media only screen and (max-width: 320px) {
+    /* --- */
+}

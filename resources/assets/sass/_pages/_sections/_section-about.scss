@@ -1,0 +1,14 @@
+.about{
+	max-width: 1602px;
+	margin-left: auto;
+    margin-right: auto;
+	&__ttl{
+		font-family: $alt-font;
+	font-weight: 300;
+	font-size: 36px;    
+    
+	}
+	p{
+		color:#757575;
+	}
+}

@@ -1,0 +1,13 @@
+@import "_mixins/font-face";
+
+// @include font-face("OpenSans", "../fonts/OpenSans-Regular/OpenSans-Regular");
+// @include font-face("OpenSans", "../fonts/OpenSans-Bold/OpenSans-Bold", bold);
+// @include font-face("OpenSans", "../fonts/OpenSans-Light/OpenSans-Light", 300);
+// @include font-face("Raleway", "../fonts/Raleway-Bold/Raleway-Bold", bold);
+
+@include font-face("Roboto", "../fonts/RobotoRegular/RobotoRegular");
+@include font-face("Roboto", "../fonts/RobotoBold/RobotoBold", bold);
+@include font-face("Roboto", "../fonts/RobotoLight/RobotoLight", 300);
+@include font-face("PlayfairDisplay", "../fonts/PlayfairDisplayRegular/PlayfairDisplayRegular");
+@include font-face("PlayfairDisplay", "../fonts/PlayfairDisplayBold/PlayfairDisplayBold", bold);
+;

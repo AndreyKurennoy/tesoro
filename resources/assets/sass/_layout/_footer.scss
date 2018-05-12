@@ -1,0 +1,64 @@
+.footer {
+    background-color: #111111;
+    padding: 20px 0 20px 0;
+    font-size: 14px;
+    a {
+        text-decoration: underline;
+        color: #fff;
+    }
+    &__inner {
+        max-width: 1602px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    &__contact-inner {
+        width: 200px;
+        margin: 0 auto;
+        text-align: center;
+    }
+    &__social {
+
+        margin-top: 22px;
+        text-align: left;
+        p {
+            color: #525353;
+        }
+        i {
+            font-size: 25px;
+            margin-right: 10px;
+        }
+    }
+    &__tel {
+
+        text-align: left;
+        margin-top: 22px;
+        p {
+            color: #525353;
+            margin-bottom: 0;
+        }
+        a {
+            text-decoration: none;
+        }
+    }
+    &__menu-ttl {
+        color: #FFD600 !important;
+        margin-bottom: 13px;
+        display: block;
+    }
+    &__menu {
+        li {
+            display: inline-block;
+            vertical-align: top;
+            width: 49%;
+        }
+    }
+    &__pay-services {
+        padding-top: 17px;
+        img {
+            display: inline-block;
+            vertical-align: top;
+            margin-left: 10px;
+            margin-bottom: 16px;
+        }
+    }
+}
