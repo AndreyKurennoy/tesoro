@@ -73,13 +73,13 @@ ul{
 /* start import header */
 @import '_layout/header';
 /* start import footer */
-@import '_layout/footer';
+//@import '_layout/footer';
 /* start import sections */
-@import '_pages/_sections/section';
+//@import '_pages/_sections/section';
 /* start import sections */
-@import '_pages/page';
+//@import '_pages/page';
 
-@import 'modal';
+//@import 'modal';
 
 /* start import button */
-@import 'button';
+//@import 'button';
