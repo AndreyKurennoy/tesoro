@@ -39,7 +39,7 @@
         <div class="header__middle-left">
             <div class="header__middle-logo">
                 <a href="">
-                    <img src="img/Logo.png" alt="" class="img-responsive">
+                    <img src="/img/logo.png" alt="" class="img-responsive">
                 </a>
             </div>
             <div class="header__middle-funcset">
