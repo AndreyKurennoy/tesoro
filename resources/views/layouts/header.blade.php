@@ -76,3 +76,10 @@
         </ul>
     </nav>
 </header>
+<section class="section section--banner">
+        <div class="banner owl-carousel owl-theme">
+            <div class="banner__slide" style="background-image: url(http://tesoro-jewelry.com.ua/images/photos_main/11/photo.jpg);"></div>
+            <div class="banner__slide" style="background-image: url(http://tesoro-jewelry.com.ua/images/photos_main/1/photo.jpg);"></div>
+            <div class="banner__slide" style="background-image: url(http://tesoro-jewelry.com.ua/images/photos_main/18/photo.jpg);"></div>
+        </div>
+</section>

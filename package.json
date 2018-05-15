@@ -20,7 +20,8 @@
   },
   "dependencies": {
     "fix-path": "^2.1.0",
-    "npm": "^6.0.0"
+    "npm": "^6.0.0",
+    "owl.carousel": "^2.3.4"
   },
   "name": "tesoro_voyager",
   "version": "1.0.0",
