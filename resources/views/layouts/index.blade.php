@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{{ URL::asset('css/app.css')}}">
 </head>
 <body>
-    @extends('layouts.header')
+    @include('layouts.header')
     <script src="{{ URL::asset('js/app.js')}}"></script>
 </body>
 </html>
