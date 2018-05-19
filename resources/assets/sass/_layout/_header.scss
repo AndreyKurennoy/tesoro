@@ -1,6 +1,6 @@
 header {
     background: $dark;
-    overflow-x: hidden;
+    position: relative;
     .header {
 
         &__top,
@@ -208,6 +208,113 @@ header {
                 }
             }
         }
+        &__modal.show {
+            display: block;
+        }
+        &__modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 4;
+            display: none;
+
+
+            &-overlay {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: -1;
+            }
+            &-menu {
+                background: #F9F9F9;
+                max-width: 360px;
+                width: 100%;
+            }
+            &-menu-items {
+                li {
+                    a {
+                        padding: 11px 24px;
+                        display: inline-block;
+                        color: #212121;
+                        width: 100%;
+                        &:hover {
+                            background-color: rgba(0, 0, 0, 0.1);
+                        }
+                    }
+                }
+            }
+
+            &-menu-social_lang {
+                li {
+                    padding: 11px 0 11px 24px;
+
+                    span {
+                        display: inline-block;
+                        width: 67%;
+                    }
+                    a {
+                        display: inline-block;
+                        width: 15%;
+                        text-align: center;
+                        color: #757575;
+                        i {
+                            font-size: 23px;
+                        }
+                        &:hover {
+                            color: #212121;
+                            font-weight: 600;
+                        }
+                    }
+                }
+            }
+            &-menu-func {
+                li {
+                    a {
+                        text-align: center;
+                        padding: 11px 0;
+                        display: block;
+                        background-color: #e5e5e5;
+                        color: #212121;
+                        font-weight: 600;
+                        font-size: 16px;
+                        border-bottom: 1px solid #f9f9f9;
+                        &:hover {
+                            background-color: #FFF200;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    .header__bottom-menu.owl-carousel {
+        padding: 5px;
+    }
+    .owl-dots {
+        text-align: center;
+        height: 20px;
+    }
+    .owl-dot {
+        display: inline-block;
+        text-align: center;
+        margin: 0 9px;
+        span {
+            height: 8px;
+            width: 8px;
+            background-color: #9E9E9E;
+            display: block;
+            border-radius: 50%;
+        }
+    }
+    .owl-dot.active {
+        span {
+            background-color: #212121;
+        }
+    }
+    .owl-stage {
+        display: flex;
+        align-items: center;
     }
 }
 
@@ -226,7 +333,9 @@ header {
     header .header__top,
     header .header__middle-tell a p,
     header .header__middle-address,
-    header .header__middle-cart span {
+    header .header__middle-cart span,
+    header .header__middle-funcset-catalog,
+    header .header__middle-funcset-match {
         display: none;
     }
     header .header__middle-mobile {
@@ -239,18 +348,11 @@ header {
         max-width: 124px;
         margin: 0 20px;
     }
-
-    header .header__bottom {
-        overflow-x: scroll;
-        overflow-y: hidden;
-    }
-    header .header__bottom-menu {
-        width: 2000px;
-    }
-    header .header__middle .header__middle-funcset a {
-        min-width: 140px;
+    header .header__bottom-menu li {
+        line-height: 13px;
     }
 }
+
 
 
 
@@ -280,6 +382,7 @@ header {
     header .header__middle-tell a i,
     header .header__middle-cart a i {
         font-size: 18px;
+        padding: 0;
     }
     header .header__middle-right {
         flex: 1;
@@ -291,27 +394,61 @@ header {
         justify-content: flex-end;
     }
     header .header__middle-funcset i {
-        padding-right: 30px;
+        font-size: 16px;
     }
 
     header .header__middle-right {
         justify-content: space-around;
+        max-width: 100px;
+        min-width: 80px;
     }
 }
+
 
 
 
 /* Small Devices, Tablets */
 
-@media only screen and (max-width: 767px) {
-    /* --- */
+@media only screen and (max-width: 768px) {
+    header .header__bottom-menu li {
+        font-size: 11px;
+    }
 }
+
 
 
 
 /* Extra Small Devices, Phones */
 
-@media only screen and (max-width: 480px) {}
+@media only screen and (max-width: 480px) {
+    header .header__middle-left .header__middle-logo {
+        order: 2;
+        position: absolute;
+        left: 50%;
+        top: 2px;
+        transform: translate(-50%, 0);
+    }
+    header .header__middle-left .header__middle-funcset {
+        order: 1
+    }
+    header .header__middle-left,
+    header .header__middle-right {
+        flex: 1;
+    }
+    header .header__middle-funcset {
+        justify-content: flex-start;
+        padding-left: 20px;
+    }
+    header .header__middle-right {
+        justify-content: flex-end;
+    }
+
+    header .header__middle-tell a i,
+    header .header__middle-cart a i {
+        margin: 0 4px;
+    }
+}
+
 
 
 

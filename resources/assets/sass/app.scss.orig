@@ -1,0 +1,16 @@
+
+// Fonts
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css");
+//<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+// Variables
+//@import "variables";
+@import "main";
+// Bootstrap
+<<<<<<< HEAD
+@import "~bootstrap-sass/assets/stylesheets/bootstrap";
+
+@import "main";
+
+=======
+//@import "~bootstrap-sass/assets/stylesheets/bootstrap";
+>>>>>>> 9398cf5d992d0ca2ea3c65324aa60cbcacd393e7
